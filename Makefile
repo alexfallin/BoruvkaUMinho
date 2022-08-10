@@ -19,9 +19,6 @@ NVCC_SUPPRESS_WARNINGS = -Wno-long-long,-Wno-unused-value,-Wno-unused-local-type
 
 
 
-
-GENCODE_SM20 = -gencode arch=compute_20,code=sm_20
-GENCODE_SM30 = -gencode arch=compute_30,code=sm_30
 GENCODE_SM35 = -gencode arch=compute_35,code=sm_35
 GENCODE_FLAGS = $(GENCODE_SM20) $(GENCODE_SM30) $(GENCODE_SM35)
 NVCCFLAGS = $(OPT) $(GENCODE_FLAGS) --compiler-options $(NVCC_WARNINGS)
