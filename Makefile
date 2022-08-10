@@ -1,7 +1,7 @@
 OPT = -O3
 
 TBB_INCLUDE_PATH = -I/home/cpd22840/tbb42/include
-TBB_LIBRARY_PATH = -L/home/cpd22840/lib
+TBB_LIBRARY_PATH = -L/usr/lib64
 
 MGPU_INCLUDE_PATH= -I/home/alex/mst/moderngpu_1.1/include 
 
