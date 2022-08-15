@@ -215,11 +215,11 @@ MGPU_MEM(unsigned int) BoruvkaUMinho_GPU(CSR_Graph *h_graph, unsigned block_size
 	MGPU_MEM(unsigned int) selected_edges = context->Fill<unsigned int>(edges_size + 1, 0);
 	MGPU_MEM(unsigned int) new_map_edges = context->FillAscending<unsigned int>(edges_size + 1, 0, 1);
 
-	double starttime, endtime;
-	float time;
-	float timings[19];
+//	double starttime, endtime;
+//	float time;
+//	float timings[19];
 
-	for(unsigned j = 0; j < 19; ++j) timings[j] = 0.0f;
+//	for(unsigned j = 0; j < 19; ++j) timings[j] = 0.0f;
 
 //  	cudaEvent_t start, stop;
 //	cudaEventCreate(&start);  cudaEventCreate(&stop);
@@ -232,7 +232,7 @@ MGPU_MEM(unsigned int) BoruvkaUMinho_GPU(CSR_Graph *h_graph, unsigned block_size
 //	cudaEventRecord(start, 0);
 	h_graph->copyHostToDevice(d_graph[0]);
 // 	cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
- 	timings[18] += time;
+// 	timings[18] += time;
  	CudaTest(const_cast<char*>("copy CSR_Graph host to device failed"));
 
     timeval start, end;
@@ -275,7 +275,7 @@ MGPU_MEM(unsigned int) BoruvkaUMinho_GPU(CSR_Graph *h_graph, unsigned block_size
 	 	CudaTest(const_cast<char*>("initialize_color color failed"));
 
 		do{
-			cudaEventRecord(start, 0);
+//			cudaEventRecord(start, 0);
 			cudaMemset(d_changed, 0, sizeof(unsigned int));
 //			cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
 //			timings[2] += time;
@@ -285,7 +285,7 @@ MGPU_MEM(unsigned int) BoruvkaUMinho_GPU(CSR_Graph *h_graph, unsigned block_size
 			// depends on find_min_per_vertex
 //			cudaEventRecord(start, 0);
 			propagate_color<<<n_blocks, block_size>>>(d_graph[iteration]->nnodes, color->get(), d_changed);
-			cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
+//			cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
 //			timings[3] += time;
 			CudaTest(const_cast<char*>("propagate_color failed"));
 

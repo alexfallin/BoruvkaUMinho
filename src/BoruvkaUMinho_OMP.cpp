@@ -350,7 +350,7 @@ unsigned int* BoruvkaUMinho_OMP(CSR_Graph* g, unsigned size) {
 
     it_graph[iteration + 1]->allocate_edges();
 
-    it_start_time = omp_get_wtime();
+//    it_start_time = omp_get_wtime();
     memcpy(topedge_per_vertex, it_graph[iteration + 1]->psrc, sizeof(unsigned int) * next_nnodes);
 //		it_end_time = omp_get_wtime();
 //		time[10] += it_end_time - it_start_time;
@@ -424,19 +424,19 @@ unsigned int* BoruvkaUMinho_OMP(CSR_Graph* g, unsigned size) {
   printf("%12.9f s\n", end.tv_sec - start.tv_sec + (end.tv_usec - start.tv_usec) / 1000000.0);
 //	double end_time = omp_get_wtime();
 
-  printf("%.1f\t ms on find_min_per_vertex\n", time[0] * 1000);
-  printf("%.1f\t ms on init_color\n", time[1] * 1000);
-  printf("%.1f\t ms on propagate_color\n", time[2] * 1000);
-  printf("%.1f\t ms on remove_duplicates\n", time[3] * 1000);
-  //printf("%.1f\t ms on tbb::sort\n", time[11]*1000);
-  printf("%.1f\t ms on mark_mst_vertices\n", time[4] * 1000);
-  printf("%.1f\t ms on create_new_vertex_id\n", time[5] * 1000);
-  printf("%.1f\t ms on memest outdegree\n", time[9] * 1000);
-  printf("%.1f\t ms on count_new_edges\n", time[6] * 1000);
-  printf("%.1f\t ms on setup_psrc\n", time[7] * 1000);
-  printf("%.1f\t ms on copy topedge_per_vertex\n", time[10] * 1000);
-  printf("%.1f\t ms on insert_new_edges\n", time[8] * 1000);
-  printf("%.1f\t total time\n", 1000 * (end_time - start_time));
+//  printf("%.1f\t ms on find_min_per_vertex\n", time[0] * 1000);
+//  printf("%.1f\t ms on init_color\n", time[1] * 1000);
+//  printf("%.1f\t ms on propagate_color\n", time[2] * 1000);
+//  printf("%.1f\t ms on remove_duplicates\n", time[3] * 1000);
+//  //printf("%.1f\t ms on tbb::sort\n", time[11]*1000);
+//  printf("%.1f\t ms on mark_mst_vertices\n", time[4] * 1000);
+//  printf("%.1f\t ms on create_new_vertex_id\n", time[5] * 1000);
+//  printf("%.1f\t ms on memest outdegree\n", time[9] * 1000);
+//  printf("%.1f\t ms on count_new_edges\n", time[6] * 1000);
+//  printf("%.1f\t ms on setup_psrc\n", time[7] * 1000);
+//  printf("%.1f\t ms on copy topedge_per_vertex\n", time[10] * 1000);
+//  printf("%.1f\t ms on insert_new_edges\n", time[8] * 1000);
+//  printf("%.1f\t total time\n", 1000 * (end_time - start_time));
 
   free(vertex_minedge);
   free(color);
