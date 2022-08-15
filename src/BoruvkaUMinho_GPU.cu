@@ -44,7 +44,7 @@ __global__
 void initialize_color(unsigned int nnodes, unsigned int *color, unsigned int *vertex_minedge){
 	unsigned id = blockIdx.x * blockDim.x + threadIdx.x;
 	if(id >= nnodes) return;
-	
+
 	unsigned edge = vertex_minedge[id];
 	if(edge == 0) color[id] = id;
 	else color[id] = tex1Dfetch(tex_edgessrcdst, edge);
@@ -101,7 +101,7 @@ void create_new_vertex_id(CSR_Graph g, unsigned int *color, unsigned int *new_ve
 	if(id >= g.nnodes) return;
 
 	if(id == color[id] && tex1Dfetch(tex_outdegree, id) > 0) // representative thread
-	{	
+	{
 		new_vertex[id] = 1;
 	}
 	else new_vertex[id] = 0;
@@ -207,22 +207,19 @@ MGPU_MEM(unsigned int) BoruvkaUMinho_GPU(CSR_Graph *h_graph, unsigned block_size
 
 	MGPU_MEM(unsigned int) vertex_minedge = context->Malloc<unsigned int>(problem_size);
 	MGPU_MEM(unsigned int) vertex_minweight = context->Fill<unsigned int>(edges_size+1, 0);
-	MGPU_MEM(unsigned int) color = context->Malloc<unsigned int>(problem_size);	
+	MGPU_MEM(unsigned int) color = context->Malloc<unsigned int>(problem_size);
 	MGPU_MEM(unsigned int) new_vertex = context->Malloc<unsigned int>(problem_size);
 	MGPU_MEM(unsigned int) supervertex_flag = context->Malloc<unsigned int>(problem_size);
-	MGPU_MEM(unsigned int) topedge_per_vertex = context->Malloc<unsigned int>(problem_size);	
-	MGPU_MEM(unsigned int) map_edges = context->FillAscending<unsigned int>(edges_size + 1, 0, 1);	
+	MGPU_MEM(unsigned int) topedge_per_vertex = context->Malloc<unsigned int>(problem_size);
+	MGPU_MEM(unsigned int) map_edges = context->FillAscending<unsigned int>(edges_size + 1, 0, 1);
 	MGPU_MEM(unsigned int) selected_edges = context->Fill<unsigned int>(edges_size + 1, 0);
-	MGPU_MEM(unsigned int) new_map_edges = context->FillAscending<unsigned int>(edges_size + 1, 0, 1);	
+	MGPU_MEM(unsigned int) new_map_edges = context->FillAscending<unsigned int>(edges_size + 1, 0, 1);
 
 	double starttime, endtime;
 	float time;
 	float timings[19];
 
-	for(unsigned j = 0; j < 19; ++j) 
-	{
-		timings[j] = 0.0f;
-	}
+	for(unsigned j = 0; j < 19; ++j) timings[j] = 0.0f;
 
   	cudaEvent_t start, stop;
 	cudaEventCreate(&start);  cudaEventCreate(&stop);
@@ -230,18 +227,20 @@ MGPU_MEM(unsigned int) BoruvkaUMinho_GPU(CSR_Graph *h_graph, unsigned block_size
 	unsigned int iteration = 0;
 	long unsigned int total_weight = 0;
 
-	starttime = rtclock();
+//	starttime = rtclock();
 
 	cudaEventRecord(start, 0);
-	h_graph->copyHostToDevice(d_graph[0]); 
+	h_graph->copyHostToDevice(d_graph[0]);
  	cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
  	timings[18] += time;
  	CudaTest(const_cast<char*>("copy CSR_Graph host to device failed"));
 
+    timeval start, end;
+    gettimeofday(&start, NULL);
 	do{
 		//toString<<<1,1>>>(*d_graph[iteration]);
 		unsigned n_blocks = compute_n_blocks(problem_size, block_size);
-		printf("Graph has %u nodes and %u edges\n", problem_size, edges_size);
+//		printf("Graph has %u nodes and %u edges\n", problem_size, edges_size);
 
 		//SegSortPairsFromIndices(d_graph[iteration]->edgessrcwt, d_graph[iteration]->edgessrcdst, edges_size+1, d_graph[iteration]->psrc, problem_size+1, *context);
 
@@ -255,45 +254,45 @@ MGPU_MEM(unsigned int) BoruvkaUMinho_GPU(CSR_Graph *h_graph, unsigned block_size
 		CudaTest(const_cast<char*>("bind tex_edgessrcwt failed"));
 
 
-		cudaEventRecord(start, 0);
+//		cudaEventRecord(start, 0);
 		find_min_per_vertex<<<n_blocks, block_size>>>(*d_graph[iteration], vertex_minedge->get());
-	 	cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
-	 	timings[0] += time;
+//	 	cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
+//	 	timings[0] += time;
 		CudaTest(const_cast<char*>("find_min_per_vertex failed"));
 
 
 		// depends on find_min_per_vertex
-		cudaEventRecord(start, 0);
+//		cudaEventRecord(start, 0);
 		remove_duplicates<<<n_blocks, block_size>>>(*d_graph[iteration], vertex_minedge->get());
-		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
-		timings[16] += time;
+//		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
+//		timings[16] += time;
 		CudaTest(const_cast<char*>("remove_duplicates failed"));
 
-		cudaEventRecord(start, 0);
+//		cudaEventRecord(start, 0);
 	 	initialize_color<<<n_blocks, block_size>>>(d_graph[iteration]->nnodes, color->get(), vertex_minedge->get());
-	 	cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
-	 	timings[1] += time;
+//	 	cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
+//	 	timings[1] += time;
 	 	CudaTest(const_cast<char*>("initialize_color color failed"));
 
 		do{
 			cudaEventRecord(start, 0);
-			cudaMemset(d_changed, 0, sizeof(unsigned int)); 
-			cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
-			timings[2] += time;
+			cudaMemset(d_changed, 0, sizeof(unsigned int));
+//			cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
+//			timings[2] += time;
 			CudaTest(const_cast<char*>("memset d_changed failed"));
 
 			// depends on initialize color
 			// depends on find_min_per_vertex
-			cudaEventRecord(start, 0);
+//			cudaEventRecord(start, 0);
 			propagate_color<<<n_blocks, block_size>>>(d_graph[iteration]->nnodes, color->get(), d_changed);
 			cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
-			timings[3] += time;
+//			timings[3] += time;
 			CudaTest(const_cast<char*>("propagate_color failed"));
 
-			cudaEventRecord(start, 0);	
+//			cudaEventRecord(start, 0);
 			cudaMemcpy(&h_changed, d_changed, sizeof(h_changed), cudaMemcpyDeviceToHost);
-			cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
-			timings[4] += time;
+//			cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
+//			timings[4] += time;
 			CudaTest(const_cast<char*>("copy d_changed failed"));
 		} while(h_changed);
 
@@ -302,20 +301,20 @@ MGPU_MEM(unsigned int) BoruvkaUMinho_GPU(CSR_Graph *h_graph, unsigned block_size
 		///////////////////////
 
 
-		cudaEventRecord(start, 0);
+//		cudaEventRecord(start, 0);
 		mark_mst_edges<<<n_blocks, block_size>>>(d_graph[iteration]->nnodes, selected_edges->get(), vertex_minedge->get(), map_edges->get());
 
-		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
-		timings[17] += time;
+//		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
+//		timings[17] += time;
 		CudaTest(const_cast<char*>("mark_mst_edges failed"));
 
 		///////////////////////
 		// allocate new device graph
 		///////////////////////
-		cudaEventRecord(start, 0);
+//		cudaEventRecord(start, 0);
 		d_graph.push_back(new CSR_Graph(0, 0, DEVICE));
-		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
-		timings[7] += time;
+//		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
+//		timings[7] += time;
 		CudaTest(const_cast<char*>("push_back failed"));
 
 		///////////////////////
@@ -323,20 +322,20 @@ MGPU_MEM(unsigned int) BoruvkaUMinho_GPU(CSR_Graph *h_graph, unsigned block_size
 		///////////////////////
 
 		//depends on propagate colors
-		cudaEventRecord(start, 0);
+//		cudaEventRecord(start, 0);
 		cudaMemset(next_nnodes, 0, sizeof(unsigned int));
 		create_new_vertex_id<<<n_blocks, block_size>>>(*d_graph[iteration], color->get(), supervertex_flag->get(), next_nnodes);
 		CudaTest(const_cast<char*>("create_new_vertex_id failed"));
 		mgpu::Scan<mgpu::MgpuScanTypeExc>(supervertex_flag->get(), problem_size, (unsigned int)0, mgpu::plus<unsigned int>(), (unsigned int*)0, &(d_graph[iteration+1]->nnodes), new_vertex->get(), *context);
-		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
+//		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
 		//cudaMemcpy(&(d_graph[iteration+1]->nnodes), next_nnodes, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-		timings[10] += time;
+//		timings[10] += time;
 		CudaTest(const_cast<char*>("mgpu::scan failed"));
-		
+
 
 		unsigned new_nnodes;
 		new_nnodes = d_graph[iteration+1]->nnodes;
-		
+
 		if(unlikely(new_nnodes <= 1))
 		{
 			cudaUnbindTexture(tex_psrc);
@@ -356,46 +355,46 @@ MGPU_MEM(unsigned int) BoruvkaUMinho_GPU(CSR_Graph *h_graph, unsigned block_size
 
 		// depends on propagate colors
 		// depends on create_new_vertex_id
-		cudaEventRecord(start, 0);
+//		cudaEventRecord(start, 0);
 		count_new_edges<<<n_blocks, block_size>>>(*d_graph[iteration], *d_graph[iteration+1], color->get(), new_vertex->get());
-		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
-		timings[12] += time;
+//		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
+//		timings[12] += time;
 		CudaTest(const_cast<char*>("count_new_edges failed"));
 
 		// depends on count_new_edges
-		cudaEventRecord(start, 0);
+//		cudaEventRecord(start, 0);
 		cudaMemset(next_nedges, 0, sizeof(unsigned int));
 		mgpu::Scan<mgpu::MgpuScanTypeExc>(d_graph[iteration+1]->outdegree, new_nnodes, (unsigned int)0, mgpu::plus<unsigned int>(), (unsigned int*)0, &(d_graph[iteration+1]->nedges), d_graph[iteration+1]->psrc, *context);
 		CudaTest(const_cast<char*>("mgpu::Scan failed"));
 		setup_psrc<<<compute_n_blocks(new_nnodes, block_size), block_size>>>(*d_graph[iteration+1], next_nedges);
 		CudaTest(const_cast<char*>("setup_psrc failed"));
 		//cudaMemcpy(&(d_graph[iteration+1]->nedges), next_nedges, sizeof(unsigned int), cudaMemcpyDeviceToHost);
-		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
-		timings[13] += time;
+//		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
+//		timings[13] += time;
 
 		d_graph[iteration+1]->d_allocate_edges();
 		cudaDeviceSynchronize();
 
-		cudaEventRecord(start, 0);
-		cudaMemcpy(topedge_per_vertex->get(), d_graph[iteration+1]->psrc, sizeof(unsigned int) * new_nnodes, cudaMemcpyDeviceToDevice); 
-		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
-		timings[14] += time;
+//		cudaEventRecord(start, 0);
+		cudaMemcpy(topedge_per_vertex->get(), d_graph[iteration+1]->psrc, sizeof(unsigned int) * new_nnodes, cudaMemcpyDeviceToDevice);
+//		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
+//		timings[14] += time;
 		CudaTest(const_cast<char*>("copy topedge_per_vertex failed"));
 
 		// depends on topedge_per_vertex memcpy
 		// depends on setup_psrc
-		cudaEventRecord(start, 0);
+//		cudaEventRecord(start, 0);
 		insert_new_edges<<<n_blocks, block_size>>>(*d_graph[iteration], d_graph[iteration+1]->edgessrcdst, d_graph[iteration+1]->edgessrcwt, color->get(), new_vertex->get(), topedge_per_vertex->get(), map_edges->get(), new_map_edges->get());
-		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
-		timings[15] += time;
+//		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
+//		timings[15] += time;
 		CudaTest(const_cast<char*>("insert_new_edges failed"));
-	
+
 		edges_size = d_graph[iteration+1]->nedges;
 
-		cudaEventRecord(start, 0);		
-		cudaMemcpy(map_edges->get(), new_map_edges->get(), sizeof(unsigned int) * (edges_size + 1), cudaMemcpyDeviceToDevice); 
-		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
-		timings[6] += time;
+//		cudaEventRecord(start, 0);
+		cudaMemcpy(map_edges->get(), new_map_edges->get(), sizeof(unsigned int) * (edges_size + 1), cudaMemcpyDeviceToDevice);
+//		cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
+//		timings[6] += time;
 		CudaTest(const_cast<char*>("copy map_edges failed"));
 
 		problem_size = new_nnodes;
@@ -415,11 +414,13 @@ MGPU_MEM(unsigned int) BoruvkaUMinho_GPU(CSR_Graph *h_graph, unsigned block_size
 		++iteration;
 
 	} while(true);
-	endtime = rtclock();
+    gettimeofday(&end, NULL);
+    printf("%12.9f s\n", end.tv_sec - start.tv_sec + (end.tv_usec - start.tv_usec) / 1000000.0);
+//	endtime = rtclock();
 
 	// the selected MST edges are in the selected_edges array
 	// cudaEventRecord(start, 0);
-	// load_weights<<<compute_n_blocks(h_graph->nedges + 1, block_size), block_size>>>(*d_graph[0], selected_edges->get(), vertex_minweight->get());	
+	// load_weights<<<compute_n_blocks(h_graph->nedges + 1, block_size), block_size>>>(*d_graph[0], selected_edges->get(), vertex_minweight->get());
 	// mgpu::Reduce(vertex_minweight->get(), h_graph->nedges + 1, (long unsigned int)0, mgpu::plus<long unsigned int>(), (long unsigned int*)0, &total_weight, *context);
 	// cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
 	// timings[5] += time;
@@ -429,22 +430,22 @@ MGPU_MEM(unsigned int) BoruvkaUMinho_GPU(CSR_Graph *h_graph, unsigned block_size
 	// mgpu::Reduce(selected_edges->get(), h_graph->nedges + 1, (unsigned int)0, mgpu::plus<unsigned int>(), (unsigned int*)0, &mst_edges, *context);
 
 
-	printf("%.1f\t ms on copying source graph to GPU\n", timings[18]);
-	printf("%.1f\t ms on find_min_per_vertex\n", timings[0]);
-	printf("%.1f\t ms on initialize_color\n", timings[1]);
-	printf("%.1f\t ms on memset d_changed\n", timings[2]);
-	printf("%.1f\t ms on propagate_color\n", timings[3]);
-	printf("%.1f\t ms on copy d_changed\n", timings[4]);
-	printf("%.1f\t ms on remove_duplicates\n", timings[16]);
-	printf("%.1f\t ms on mark mst edges\n", timings[17]);
-	printf("%.1f\t ms on push_back\n", timings[7]);
-	printf("%.1f\t ms on create_new_vertex_id\n", timings[10]);
-	printf("%.1f\t ms on count_new_edges\n", timings[12]);
-	printf("%.1f\t ms on setup_psrc\n", timings[13]);
-	printf("%.1f\t ms on copy topedge_per_vertex\n", timings[14]);
-	printf("%.1f\t ms on insert_new_edges\n", timings[15]);
-	printf("%.1f\t ms on copy map_edges\n", timings[6]);
-	printf("%.3lf\t ms total execution time\n", 1000 * (endtime - starttime));
+//	printf("%.1f\t ms on copying source graph to GPU\n", timings[18]);
+//	printf("%.1f\t ms on find_min_per_vertex\n", timings[0]);
+//	printf("%.1f\t ms on initialize_color\n", timings[1]);
+//	printf("%.1f\t ms on memset d_changed\n", timings[2]);
+//	printf("%.1f\t ms on propagate_color\n", timings[3]);
+//	printf("%.1f\t ms on copy d_changed\n", timings[4]);
+//	printf("%.1f\t ms on remove_duplicates\n", timings[16]);
+//	printf("%.1f\t ms on mark mst edges\n", timings[17]);
+//	printf("%.1f\t ms on push_back\n", timings[7]);
+//	printf("%.1f\t ms on create_new_vertex_id\n", timings[10]);
+//	printf("%.1f\t ms on count_new_edges\n", timings[12]);
+//	printf("%.1f\t ms on setup_psrc\n", timings[13]);
+//	printf("%.1f\t ms on copy topedge_per_vertex\n", timings[14]);
+//	printf("%.1f\t ms on insert_new_edges\n", timings[15]);
+//	printf("%.1f\t ms on copy map_edges\n", timings[6]);
+//	printf("%.3lf\t ms total execution time\n", 1000 * (endtime - starttime));
 
 	//printf("\t%.1f ms on weight computation\n", timings[5]);
 
