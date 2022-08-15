@@ -1,4 +1,5 @@
 #include "BoruvkaUMinho_GPU.cuh"
+#include <sys/time.h>
 
 
 texture<unsigned int, 1, cudaReadModeElementType> tex_psrc;
