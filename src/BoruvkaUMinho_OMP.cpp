@@ -421,7 +421,7 @@ unsigned int* BoruvkaUMinho_OMP(CSR_Graph* g, unsigned size) {
 
   }
   gettimeofday(&end, NULL);
-  printf("%12.9f s\n", end.tv_sec - start.tv_sec + (end.tv_usec - start.tv_usec) / 1000000.0);
+  printf("eclruntime %12.9f s\n", end.tv_sec - start.tv_sec + (end.tv_usec - start.tv_usec) / 1000000.0);
 //	double end_time = omp_get_wtime();
 
 //  printf("%.1f\t ms on find_min_per_vertex\n", time[0] * 1000);

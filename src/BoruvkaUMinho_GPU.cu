@@ -415,7 +415,7 @@ MGPU_MEM(unsigned int) BoruvkaUMinho_GPU(CSR_Graph *h_graph, unsigned block_size
 
 	} while(true);
     gettimeofday(&end, NULL);
-    printf("%12.9f s\n", end.tv_sec - start.tv_sec + (end.tv_usec - start.tv_usec) / 1000000.0);
+    printf("eclruntime %12.9f s\n", end.tv_sec - start.tv_sec + (end.tv_usec - start.tv_usec) / 1000000.0);
 //	endtime = rtclock();
 
 	// the selected MST edges are in the selected_edges array
