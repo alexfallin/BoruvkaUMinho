@@ -19,9 +19,8 @@ NVCC_SUPPRESS_WARNINGS = -Wno-long-long,-Wno-unused-value,-Wno-unused-local-type
 
 
 
-GENCODE_SM35 = -gencode arch=compute_35,code=sm_35
-GENCODE_FLAGS = $(GENCODE_SM20) $(GENCODE_SM30) $(GENCODE_SM35)
-NVCCFLAGS = $(OPT) $(GENCODE_FLAGS) --compiler-options $(NVCC_WARNINGS)
+GENCODE_FLAGS = -gencode arch=compute_70,code=compute_70
+NVCCFLAGS = $(OPT) -arch=sm_70 --compiler-options $(NVCC_WARNINGS)
 NVCC_INCLUDES = -Iinclude/ $(MGPU_INCLUDE_PATH)
 NVCC_LIBS = -Llib/
 
@@ -41,7 +40,8 @@ BoruvkaUMinho_OMP: apps/boruvka_omp/main.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) $(LIBS) -lBoruvkaUMinho_OMP $^ -o bin/$@
 
 
-# compile libs
+# compile lib
+#
 
 libs: libBoruvkaUMinho_OMP libBoruvkaUMinho_GPU
 
