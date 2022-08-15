@@ -155,7 +155,7 @@ unsigned int* BoruvkaUMinho_OMP(CSR_Graph* g, unsigned size) {
   omp_set_num_threads(size);
   tbb::task_scheduler_init init(size);
 
-  unsigned size = omp_get_max_threads();
+//  unsigned size = omp_get_max_threads();
   printf("running with %d threads\n", size);
 
   unsigned int i;
@@ -321,7 +321,7 @@ unsigned int* BoruvkaUMinho_OMP(CSR_Graph* g, unsigned size) {
 //		it_start_time = omp_get_wtime();
     memset(it_graph[iteration + 1]->outdegree, 0, next_nnodes * sizeof(unsigned int));
 //		it_end_time = omp_get_wtime();
-    time[9] += it_end_time - it_start_time;
+//    time[9] += it_end_time - it_start_time;
 
 
 //		it_start_time = omp_get_wtime();

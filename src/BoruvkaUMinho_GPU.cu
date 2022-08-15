@@ -221,17 +221,17 @@ MGPU_MEM(unsigned int) BoruvkaUMinho_GPU(CSR_Graph *h_graph, unsigned block_size
 
 	for(unsigned j = 0; j < 19; ++j) timings[j] = 0.0f;
 
-  	cudaEvent_t start, stop;
-	cudaEventCreate(&start);  cudaEventCreate(&stop);
+//  	cudaEvent_t start, stop;
+//	cudaEventCreate(&start);  cudaEventCreate(&stop);
 
 	unsigned int iteration = 0;
 	long unsigned int total_weight = 0;
 
 //	starttime = rtclock();
 
-	cudaEventRecord(start, 0);
+//	cudaEventRecord(start, 0);
 	h_graph->copyHostToDevice(d_graph[0]);
- 	cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
+// 	cudaEventRecord(stop, 0);  cudaEventSynchronize(stop);  cudaEventElapsedTime(&time, start, stop);
  	timings[18] += time;
  	CudaTest(const_cast<char*>("copy CSR_Graph host to device failed"));
 
